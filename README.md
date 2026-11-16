@@ -108,13 +108,6 @@ java -jar target/TravelGuidePlatform-0.0.1-SNAPSHOT.jar
 
 也可以直接在 IDE 中运行 `TravelGuidePlatformApplication`。
 
-## API 文档
-
-项目集成了 Knife4j / OpenAPI，启动后可在浏览器中访问：
-
-```text
-http://localhost:8080/doc.html
-```
 
 ## 运行说明
 
@@ -123,18 +116,3 @@ http://localhost:8080/doc.html
 - AI 能力依赖 DashScope 或其他兼容模型服务。
 - 若未配置基础中间件，服务可能无法正常启动。
 
-## 适用场景
-
-这个项目可作为以下场景的参考：
-
-- 旅游资讯平台后端
-- 景点与路线内容管理系统
-- 用户社交与互动平台
-- AI 驱动的旅游问答示例
-- 具备内容管理和基础推荐能力的后端服务
-
-## 备注
-
-这是一个以旅游平台为主题的 Java 后端项目，覆盖了用户管理、内容管理、社交互动、AI 能力与多媒体处理等常见模块，适合用于学习 Spring Boot、数据库集成和中间件接入。
-
-如果你希望进一步扩展该项目，可以从用户权限、内容审核、推荐逻辑、前端联调或部署脚本等方向继续完善。
