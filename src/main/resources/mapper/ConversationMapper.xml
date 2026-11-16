@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mpq.mapper.ConversationMapper">
+    <select id="selectConversationsWithUsers" resultType="com.mpq.pojo.vo.ConversationWithUserVo">
+        SELECT
+        c.conversation_id,
+        c.user1_id,
+        c.user2_id,
+        c.last_message_id,
+        c.updated_at,
+        c.unread_count1,
+        c.unread_count2,
+        m.content as lastMessageContent,
+        CASE
+        WHEN c.user1_id = #{userId} THEN u2.username
+        ELSE u1.username
+        END as otherUserName,
+        CASE
+        WHEN c.user1_id = #{userId} THEN u2.avatar_url
+        ELSE u1.avatar_url
+        END as otherUserAvatar
+        FROM conversations c
+        LEFT JOIN users u1 ON c.user1_id = u1.user_id
+        LEFT JOIN users u2 ON c.user2_id = u2.user_id
+        LEFT JOIN messages m ON c.last_message_id = m.message_id
+        WHERE c.user1_id = #{userId} OR c.user2_id = #{userId}
+        ORDER BY c.updated_at DESC
+    </select>
+</mapper>

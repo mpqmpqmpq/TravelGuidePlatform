@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mpq.mapper.ArticleMapper">
+    <update id="updateById">
+        update articles
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="commentCount != null">comment_count = #{commentCount},</if>
+            <if test="likeCount != null">like_count = #{likeCount}</if>
+        </set>
+        where article_id = #{articleId}
+    </update>
+
+    <update id="updateViewCountBatch">
+        UPDATE articles
+        SET view_count = view_count + #{increment},
+            updated_at = NOW() -- 更新时间戳，便于后续追踪
+        WHERE article_id = #{articleId}
+          AND status = 1; -- 仅更新已发布的文章（过滤草稿/拒绝状态）
+    </update>
+
+    <select id="selectBrowsedCategories" resultType="java.lang.Integer">
+        SELECT DISTINCT a.category_id
+        FROM articles a
+                 JOIN user_behavior_log ubl
+                      ON a.article_id = ubl.target_id
+                          AND ubl.target_type = 1
+                          AND ubl.action_type = 2
+        WHERE 1 = 1
+          AND ubl.user_id = #{userId}
+
+          AND ubl.created_at >= DATE_SUB(NOW(), INTERVAL #{day} DAY)
+          AND a.status = 1
+          AND a.user_id != #{userId}
+    </select>
+
+    <!-- 召回符合条件的文章 -->
+    <select id="recallArticles" resultType="com.mpq.pojo.Article">
+        SELECT
+        a.article_id,
+        a.user_id,
+        a.title,
+        a.content,
+        a.cover_image,
+        a.created_at,
+        a.updated_at,
+        a.view_count,
+        a.comment_count,
+        a.like_count,
+        a.status,
+        a.category_id
+        FROM articles a
+        WHERE
+        a.status = #{statusPublish}  <!-- 已发布状态 -->
+        AND a.user_id != #{userId}
+        AND a.updated_at >= #{startTime}  <!-- 近30天的数据 -->
+
+        <!-- 分类条件：如果有偏好分类，则过滤 -->
+        <if test="preferCategories != null and preferCategories.size() > 0">
+            AND a.category_id IN
+            <foreach collection="preferCategories" item="categoryId" open="(" separator="," close=")">
+                #{categoryId}
+            </foreach>
+        </if>
+        <if test="preferTags != null and preferTags.size() > 0">
+            AND EXISTS (
+            SELECT 1
+            FROM article_tags t
+            INNER JOIN tags tg ON t.tag_id = tg.tag_id
+            WHERE t.article_id = a.article_id
+            AND tg.tag_name IN
+            <foreach collection="preferTags" item="tag" open="(" separator="," close=")">
+                #{tag}
+            </foreach>
+            )
+        </if>
+        <!-- 排序和限制数量 -->
+        ORDER BY a.updated_at DESC
+        LIMIT #{recallLimit}
+    </select>
+
+    <select id="searchArticles" resultType="com.mpq.pojo.Article">
+        SELECT * FROM articles
+        WHERE status = 1
+        AND (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%'))
+        <if test="sort == 'latest'">ORDER BY created_at DESC</if>
+        <if test="sort == 'hot'">ORDER BY view_count DESC</if>
+        <if test="sort == 'likes'">ORDER BY like_count DESC</if>
+    </select>
+</mapper>
+

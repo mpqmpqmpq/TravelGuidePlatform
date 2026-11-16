@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mpq.mapper.ScenicReviewsMapper">
+    <select id="getListAndUser" resultType="com.mpq.pojo.vo.ScenicReviewsAndUserVo">
+        SELECT
+        r.review_id AS reviewId,
+        r.scenic_id AS scenicId,
+        r.user_id AS userId,
+        r.rating,
+        r.content,
+        r.images,
+        r.status,
+        r.created_at AS createdAt,
+        r.updated_at AS updatedAt,
+        r.reply_to AS replyTo,
+        u.username,
+        u.avatar_url AS avatarUrl
+        FROM
+        scenic_reviews r
+        LEFT JOIN users u ON u.user_id = r.user_id
+        WHERE
+        r.status = 1
+        <if test="scenicId != null">
+            AND r.scenic_id = #{scenicId}
+        </if>
+        ORDER BY r.created_at DESC
+    </select>
+</mapper>

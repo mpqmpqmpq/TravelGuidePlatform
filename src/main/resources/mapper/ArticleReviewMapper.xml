@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mpq.mapper.ArticleReviewMapper">
+    <update id="updateByArticleId">
+          update article_reviews
+          <set>
+              <if test = "status != null">status = #{status},</if>
+              <if test="reason != null"> reason = #{reason}</if>
+          </set>
+          where article_id = #{articleId}
+    </update>
+
+    <select id="selectArticleReviewsWithUser" resultType="com.mpq.pojo.vo.ArticleReviewWithUserVO">
+        SELECT
+        ar.review_id as reviewId,
+        ar.article_id as articleId,
+        a.title,
+        u.username as userName,
+        ar.status,
+        ar.reason,
+        ar.created_at as createdAt,
+        ar.reviewed_at as reviewedAt
+        FROM article_reviews ar
+        LEFT JOIN articles a ON ar.article_id = a.article_id
+        LEFT JOIN users u ON a.user_id = u.user_id
+        <where>
+            <if test="status != null">
+                AND ar.status = #{status}
+            </if>
+        </where>
+        ORDER BY ar.created_at DESC
+    </select>
+</mapper>

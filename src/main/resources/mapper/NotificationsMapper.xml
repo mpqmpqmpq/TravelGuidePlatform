@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mpq.mapper.NotificationsMapper">
+    <resultMap id="NotificationVOMap" type="com.mpq.pojo.vo.NotificationVO">
+        <id column="notif_id" property="notifId"/>
+        <result column="recipient_id" property="recipientId"/>
+        <result column="sender_id" property="senderId"/>
+        <result column="sender_username" property="senderUsername"/>
+        <result column="sender_avatar" property="senderAvatar"/>
+        <result column="target_type" property="targetType"/>
+        <result column="target_id" property="targetId"/>
+        <result column="action_type" property="actionType"/>
+        <result column="is_read" property="isRead"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="extra_data" property="extraData"/>
+    </resultMap>
+
+    <select id="selectNotificationPage" resultMap="NotificationVOMap">
+        SELECT
+            n.notif_id,
+            n.recipient_id,
+            n.sender_id,
+            u.username AS sender_username,
+            u.avatar_url AS sender_avatar,
+            n.target_type,
+            n.target_id,
+            n.action_type,
+            n.is_read,
+            n.created_at,
+            n.extra_data
+        FROM notifications n
+                 LEFT JOIN users u ON n.sender_id = u.user_id
+        <where>
+            n.recipient_id = #{userId}
+            <if test="actionType != null">
+                AND n.action_type = #{actionType}
+            </if>
+        </where>
+        ORDER BY n.created_at DESC
+    </select>
+</mapper>
